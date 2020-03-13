@@ -49,11 +49,63 @@ def ml_loop(): #function的開頭
         if not ball_served: #遊戲開始
             comm.send_instruction(scene_info.frame, PlatformAction.SERVE_TO_RIGHT)
             ball_served = True
+            ball_last_y = scene_info.ball[1]
+            ball_y_dir = "up"
+            first_down = False
+            final_x = 0
         else:#遊戲中
+            #直接用球第一次向下碰到牆壁的位置來預測最後球落在的位置
             ball_x = scene_info.ball[0]
+            ball_y = scene_info.ball[1]
             platfrom_x = scene_info.platform[0]
-            if ball_x > platfrom_x:
-                comm.send_instruction(scene_info.frame, PlatformAction.MOVE_RIGHT)
-            else :
-                comm.send_instruction(scene_info.frame, PlatformAction.MOVE_LEFT)
+            
+            #判斷方向
+            if ball_last_y < ball_y : #方向向下
+                ball_y_dir = "down"
+            else:
+                ball_y_dir = "up"
+            ball_last_y = ball_y
+            
+
+            if ball_y_dir == "down":        
+                if ball_x == 0:
+                    print(ball_y)
+                    gogo = (400 - ball_y)//7
+                    #print(gogo)
+                    if gogo > 28:
+                        gogo = gogo-28
+                        final_x = 195 - gogo*7
+                    else:
+                        final_x = gogo*7
+                   
+                if ball_x == 195:
+                    print(ball_y)
+                    gogo = (400 - ball_y)//7
+                    #print(gogo)
+                    if gogo > 28:
+                        gogo = gogo-28
+                        final_x = gogo*7
+                    else:
+                        final_x = 195 - gogo*7
+                    
+            
+
+            #send instruction
+            if ball_y <= 205:#讓板子回歸中間才來的及接球
+                if platfrom_x <= 80 and platfrom_x >=100:
+                    comm.send_instruction(scene_info.frame, PlatformAction.NONE)
+                else:
+                    if platfrom_x < 80:
+                        comm.send_instruction(scene_info.frame, PlatformAction.MOVE_RIGHT)
+                    else:
+                        comm.send_instruction(scene_info.frame, PlatformAction.MOVE_LEFT)
+            else:
+                if platfrom_x+18 <= final_x and platfrom_x + 22 >= final_x:
+                    comm.send_instruction(scene_info.frame, PlatformAction.NONE)
+                else:
+                    if platfrom_x+18 < final_x:
+                        comm.send_instruction(scene_info.frame, PlatformAction.MOVE_RIGHT)
+                    else:
+                        comm.send_instruction(scene_info.frame, PlatformAction.MOVE_LEFT)
+            
 
